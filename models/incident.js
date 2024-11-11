@@ -1,47 +1,32 @@
 const mongoose = require('mongoose');
 
-// Define the schema
 const incidentSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true, // Make this field mandatory
-        trim: true      // Remove whitespace from both ends
+        required: true,
     },
     description: {
         type: String,
         required: true,
-        trim: true
     },
     status: {
         type: String,
-        enum: ['Open', 'In Progress', 'Resolved', 'Closed'], // Define acceptable values
-        default: 'Open' // Set a default value
-    },
-    assignedTo: {
-        type: String,
-        trim: true
+        enum: ['Open', 'In Progress', 'Closed'], // Possible statuses
+        default: 'Open',
     },
     priority: {
         type: String,
-        enum: ['Low', 'Medium', 'High', 'Critical'],
-        default: 'Medium'
+        enum: ['Low', 'Medium', 'High'],
+        required: true,
+    },
+    assignedTo: {
+        type: String, // Or could be a user ID if assigning users directly
+        default: null,
     },
     createdAt: {
         type: Date,
-        default: Date.now // Automatically set the date when a new incident is created
+        default: Date.now,
     },
-    updatedAt: {
-        type: Date
-    }
 });
 
-// Automatically update updatedAt before saving changes
-incidentSchema.pre('save', function(next) {
-    this.updatedAt = Date.now();
-    next();
-});
-
-// Create a model from the schema
-const Incident = mongoose.model('Incident', incidentSchema);
-
-module.exports = Incident;
+module.exports = mongoose.model('Incident', incidentSchema);
