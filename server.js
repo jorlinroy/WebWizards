@@ -2,12 +2,18 @@ require('dotenv').config(); // Load .env variables
 const express = require('express');
 const mongoose = require('mongoose');
 const Incident = require('./models/Incident'); // Import the Incident model
+const authRoutes = require('./routes/auth'); // Import the auth routes
+const { authenticateToken } = require('./middleware/auth'); // Import the JWT middleware
 
 const app = express();
 
 // Middleware to parse JSON
 app.use(express.json());
 
+// Use the auth routes for registration and login
+app.use('/api/auth', authRoutes); // Authentication routes are prefixed with '/api/auth'
+
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 15000, // Increase timeout
     socketTimeoutMS: 45000 // Increase socket timeout
@@ -15,15 +21,13 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('Connected to MongoDB'))
 .catch((error) => console.log('Error connecting to MongoDB:', error));
 
-
-
-// Sample route
+// Sample root route
 app.get('/', (req, res) => {
     res.send('Incident Record Web App is running');
 });
 
-// Route to create a new incident
-app.post('/api/incidents', async (req, res) => {
+// Route to create a new incident (protected)
+app.post('/api/incidents', authenticateToken, async (req, res) => {
     try {
         const incident = new Incident(req.body); // Create a new incident using the request body
         await incident.save(); // Save the new incident to the database
@@ -33,8 +37,8 @@ app.post('/api/incidents', async (req, res) => {
     }
 });
 
-// Route to get all incidents
-app.get('/api/incidents', async (req, res) => {
+// Route to get all incidents (protected)
+app.get('/api/incidents', authenticateToken, async (req, res) => {
     try {
         const incidents = await Incident.find(); // Get all incidents from the database
         res.status(200).json(incidents); // Return the list of incidents
@@ -43,8 +47,8 @@ app.get('/api/incidents', async (req, res) => {
     }
 });
 
-// Route to get a specific incident by ID
-app.get('/api/incidents/:id', async (req, res) => {
+// Route to get a specific incident by ID (protected)
+app.get('/api/incidents/:id', authenticateToken, async (req, res) => {
     try {
         const incident = await Incident.findById(req.params.id); // Find incident by ID
         if (!incident) {
@@ -56,8 +60,8 @@ app.get('/api/incidents/:id', async (req, res) => {
     }
 });
 
-// Route to update an incident by ID
-app.put('/api/incidents/:id', async (req, res) => {
+// Route to update an incident by ID (protected)
+app.put('/api/incidents/:id', authenticateToken, async (req, res) => {
     try {
         const updatedIncident = await Incident.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!updatedIncident) {
@@ -69,8 +73,8 @@ app.put('/api/incidents/:id', async (req, res) => {
     }
 });
 
-// Route to delete an incident by ID
-app.delete('/api/incidents/:id', async (req, res) => {
+// Route to delete an incident by ID (protected)
+app.delete('/api/incidents/:id', authenticateToken, async (req, res) => {
     try {
         const incident = await Incident.findByIdAndDelete(req.params.id); // Delete incident by ID
         if (!incident) {
