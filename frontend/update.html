@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Incident</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Update Incident</h1>
+    <form id="update-form">
+      <input type="text" id="title" placeholder="Title" required /><br />
+      <textarea id="description" placeholder="Description" required></textarea
+      ><br />
+      <select id="priority">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option></select
+      ><br />
+      <select id="status">
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Resolved">Resolved</option></select
+      ><br />
+      <input type="text" id="assignedTo" placeholder="Assigned To" /><br />
+      <button type="submit">Update</button>
+    </form>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const incidentId = urlParams.get("id");
+
+      async function loadIncident() {
+        const response = await fetch(
+          `http://127.0.0.1:5000/api/incidents/${incidentId}`
+        );
+        const incident = await response.json();
+        document.getElementById("title").value = incident.title;
+        document.getElementById("description").value = incident.description;
+        document.getElementById("priority").value = incident.priority;
+        document.getElementById("status").value = incident.status;
+        document.getElementById("assignedTo").value = incident.assignedTo || "";
+      }
+
+      document
+        .getElementById("update-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const updatedIncident = {
+            title: document.getElementById("title").value,
+            description: document.getElementById("description").value,
+            priority: document.getElementById("priority").value,
+            status: document.getElementById("status").value,
+            assignedTo: document.getElementById("assignedTo").value,
+          };
+          await fetch(`http://127.0.0.1:5000/api/incidents/${incidentId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedIncident),
+          });
+          window.location.href = "index.html";
+        });
+
+      loadIncident();
+    </script>
+  </body>
+</html>
