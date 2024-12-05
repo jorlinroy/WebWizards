@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Sign Up</h1>
+    <form id="signup-form">
+      <input type="text" id="username" placeholder="Username" required /><br />
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        required
+      /><br />
+      <button type="submit">Sign Up</button>
+      <p id="error-message" style="color: red; display: none"></p>
+      <!-- Error message -->
+    </form>
+
+    <script>
+      document
+        .getElementById("signup-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const username = document.getElementById("username").value.trim();
+          const password = document.getElementById("password").value.trim();
+          const errorMessage = document.getElementById("error-message");
+
+          // Clear previous error messages
+          errorMessage.style.display = "none";
+
+          // Client-side validation
+          if (username.length < 3 || password.length < 6) {
+            errorMessage.style.display = "block";
+            errorMessage.textContent =
+              "Username must be at least 3 characters, and password at least 6.";
+            return;
+          }
+
+          try {
+            // Send sign-up request
+            const response = await fetch(
+              "http://127.0.0.1:5000/api/users/signup",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+              }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+              alert("Signup successful! Please log in.");
+              window.location.href = "signin.html"; // Redirect to Sign-In page
+            } else {
+              // Display server error messages
+              errorMessage.style.display = "block";
+              errorMessage.textContent =
+                data.message || "Failed to sign up. Please try again.";
+            }
+          } catch (error) {
+            console.error("Error signing up:", error);
+            errorMessage.style.display = "block";
+            errorMessage.textContent =
+              "An error occurred. Please try again later.";
+          }
+        });
+    </script>
+  </body>
+</html>
