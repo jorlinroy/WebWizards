@@ -1,46 +1,27 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const incidentRoutes = require("./routes/incidentRoutes");
-const userRoutes = require("./routes/userRoutes"); // Import user routes
-const cors = require("cors");
-require("dotenv").config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors'); // Import CORS middleware
+const authRoutes = require('./routes/authRoutes'); // Import your auth routes
+const incidentRoutes = require('./routes/incidentRoutes');
 
 const app = express();
 
-// Enable CORS with appropriate headers
-const corsOptions = {
-  origin: "*", // Allow all origins for testing. Restrict this in production.
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-app.use(cors(corsOptions));
+// Middleware
+app.use(cors({ origin: 'http://localhost:3000', credentials: true })); // Enable CORS with specific origin
+app.use(express.json());
 
-// Log all incoming requests for debugging
-app.use((req, res, next) => {
-  console.log(`Incoming Request: ${req.method} ${req.url}`);
-  console.log("Request Headers:", req.headers);
-  next();
-});
-
-// Parse incoming JSON requests
-app.use(bodyParser.json());
-
-// Connect to MongoDB
+// MongoDB connection
 mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log("MongoDB Connection Error:", err));
+  .connect('mongodb+srv://jroy:Jorlin%402003@wizard.y31ew.mongodb.net/?retryWrites=true&w=majority&appName=Wizard')
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log('Error connecting to MongoDB:', err));
 
-// Routes
-app.use("/api/incidents", incidentRoutes); // Incident routes
-app.use("/api/users", userRoutes); // User routes
+// Use routes
+app.use('/api/auth', authRoutes);
+app.use('/api/incidents', incidentRoutes);
 
-// Default route for unknown endpoints
-app.use((req, res) => {
-  res.status(404).json({ message: "Endpoint not found" });
-});
+// Basic route
+app.get('/', (req, res) => res.send('Server is running'));
 
-// Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

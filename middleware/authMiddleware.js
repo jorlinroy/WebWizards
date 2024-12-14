@@ -1,22 +1,24 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
-exports.authenticate = (req, res, next) => {
-  const token = req.header("Authorization")?.replace("Bearer ", "");
-  console.log("Authorization header:", req.header("Authorization"));
-  console.log("Extracted token:", token);
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Authorization header missing' });
+  }
+
+  const token = authHeader.split(' ')[1]; // Extract the token
   if (!token) {
-    return res
-      .status(401)
-      .json({ message: "Access denied. No token provided." });
+    return res.status(401).json({ error: 'Token missing' });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded token:", decoded);
+    const decoded = jwt.verify(token, 'your_jwt_secret_key'); // Use the same secret key as during signing
     req.user = decoded; // Attach user info to the request
     next();
-  } catch (error) {
-    console.error("JWT verification error:", error.message);
-    res.status(400).json({ message: "Invalid token." });
+  } catch (err) {
+    console.error('Error validating token:', err);
+    return res.status(403).json({ error: 'Invalid token' });
   }
 };
+
+module.exports = authMiddleware;
